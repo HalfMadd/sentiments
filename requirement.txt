@@ -1,0 +1,6 @@
+flask
+stop_words
+matplotlib
+sklearn
+pickle
+numpy
