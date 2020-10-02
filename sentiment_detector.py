@@ -23,18 +23,21 @@ class Sentiment:
     df=df[df['l_review']>5]
     df['label']=df['rating']
 
-    positif=df[df['label']>3].sample(391)
 
-    negatif=df[df['label']<3]
+    for ind in df['label'].index:
+      if df.loc[ind,'label'] >= 3:
+          df.loc[ind,'label']=1
+      elif df.loc[ind,'label'] < 3:
+          df.loc[ind,'label']=0
+      pass
+
+    positif=df[df['label'] == 1].sample(391)
+
+    negatif=df[df['label'] == 0].sample(391)
 
     Corpus=pd.concat([positif,negatif],ignore_index=True)[['review','label']]
+    print(Corpus['label'].value_counts())
 
-    for ind in Corpus['label'].index:
-      if Corpus.loc[ind,'label'] > 3:
-          Corpus.loc[ind,'label']=1
-      elif Corpus.loc[ind,'label'] < 3:
-          Corpus.loc[ind,'label']=0
-      pass
 
 
     my_stop_word_list = get_stop_words('french')
@@ -42,15 +45,14 @@ class Sentiment:
     s_w=list(set(my_stop_word_list))
     s_w=[elem.lower() for elem in s_w]
 
-    nettoyage(Corpus['review'].loc[1])
+    nettoyage(Corpus['review'].loc[1], s_w)
 
-    Corpus['review_net']=Corpus['review'].apply(nettoyage)
+    Corpus['review_net']=Corpus['review'].apply(lambda x: nettoyage(x, s_w))
 
     vectorizer = TfidfVectorizer()
     vectorizer.fit(Corpus['review_net'])
     X=vectorizer.transform(Corpus['review_net'])
 
-    #Save vectorizer.vocabulary_
     pickle.dump(vectorizer.vocabulary_,open("feature.pkl","wb"))
 
     self.vectorizer = vectorizer
@@ -60,14 +62,9 @@ class Sentiment:
     x_train, x_val, y_train, y_val = train_test_split(X, y, test_size = 0.2)
 
     cls=LogisticRegression(max_iter=300).fit(x_train,y_train)
-    #Save classifier
     pickle.dump(cls,open("cls.pkl","wb"))
 
-    transformer = TfidfTransformer()
-    loaded_vec = CountVectorizer(decode_error="replace",vocabulary=pickle.load(open("feature.pkl", "rb")))
-    # user = transformer.fit_transform(loaded_vec.fit_transform([nettoyage(self.sentiment)]))
-    # self.user = user
-    cls=pickle.load(open("cls.pkl", "rb"))
+    self.s_w = s_w
     self.cls = cls
     self.X = X
     self.y = y
@@ -81,17 +78,13 @@ class Sentiment:
     x_train, x_val, y_train, y_val = train_test_split(self.X, self.y, test_size = 0.2)
     self.cls=LogisticRegression(max_iter=300).fit(x_train,y_train)
     pickle.dump(self.cls,open("cls.pkl","wb"))
+    return int(self.cls.score(x_val, y_val) * 100)
     pass
 
   def evaluate_sentiment(self, phrase):
 
-    self.user = self.vectorizer.transform([nettoyage(phrase)])
-
-    if self.cls.predict(self.user)[0] == 0.0:
-      return 'Désolé que vous ayez passé un mauvais moment'
-      pass
-    else:
-      return 'Au plaisir de vous revoir'
-      pass
+    self.user = self.vectorizer.transform([nettoyage(phrase, self.s_w)])
+    return int(self.cls.predict(self.user))[0]
+    pass
 
   pass
