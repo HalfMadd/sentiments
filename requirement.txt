@@ -4,3 +4,7 @@ matplotlib
 sklearn
 pickle
 numpy
+nltk
+re
+unidecode
+sklearn
