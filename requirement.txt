@@ -1,0 +1,10 @@
+flask
+stop_words
+matplotlib
+sklearn
+pickle
+numpy
+nltk
+re
+unidecode
+sklearn

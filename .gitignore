@@ -1,0 +1,4 @@
+flask_nlp_env
+*.csv
+__pycache__
+*.pkl
