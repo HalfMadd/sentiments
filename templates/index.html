@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Input datas</title>
+  </head>
+  <body>
+
+  <div class="container">
+    <h1 >
+      Please fill in your inputs
+    </h1>
+    <br>
+    <form action="/prediction" method="POST">
+      <p>Text <input type="text" name="sentiment" style="font-size:18pt;height:120px;width:200px;"/></p>
+      <p><input type="submit" value="submit" /></p>
+    </form>
+    {% if error %}
+      <p class="error"><strong>Error:</strong> {{ error }}
+    {% endif %}
+  </div>
+  </body>
+</html>
